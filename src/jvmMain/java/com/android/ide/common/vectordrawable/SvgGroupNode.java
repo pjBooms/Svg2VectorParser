@@ -52,7 +52,7 @@ class SvgGroupNode extends SvgNode {
     }
 
     @Override
-    public void buildVector(@NotNull ImageVector.Builder builder) {
+    public void buildVector(@NotNull ImageVectorBuilder builder) {
         for (SvgNode node : mChildren) {
             node.buildVector(builder);
         }

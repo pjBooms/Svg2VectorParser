@@ -55,7 +55,7 @@ class SvgClipPathNode extends SvgGroupNode {
     }
 
     @Override
-    public void buildVector(@NotNull ImageVector.Builder builder) {
+    public void buildVector(@NotNull ImageVectorBuilder builder) {
 
     }
 

@@ -60,7 +60,7 @@ class SvgLeafNode extends SvgNode {
         return newNode;
     }
     @Override
-    public void buildVector(@NotNull ImageVector.Builder builder) {
+    public void buildVector(@NotNull ImageVectorBuilder builder) {
         String fillColor = mVdAttributesMap.get(SVG_FILL);
         String strokeColor = mVdAttributesMap.get(SVG_STROKE);
         boolean emptyFill = "none".equals(fillColor) || "#00000000".equals(fillColor);
@@ -71,7 +71,7 @@ class SvgLeafNode extends SvgNode {
 
         int color = fillColor == null ? 0xFF000000 : VdUtil.parseColorValue(fillColor);
 
-        ImageVectorUtils.addPath(builder, mPathData, color);
+        builder.addPath(mPathData, color);
     }
 
     protected void copyFrom(@NonNull SvgLeafNode from) {

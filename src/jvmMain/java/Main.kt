@@ -4,6 +4,7 @@
  */
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -70,7 +71,7 @@ val ic_insta = ImageVector.Builder(
 
 @Composable
 fun GreetingView(text: String) {
-    Row(modifier = Modifier) {
+    Row(modifier = Modifier.background(Color.Gray)) {
         Image(
             rememberVectorPainter(image = useResource("ic_insta.svg", {Svg2Vector.sampleVector(it)})),
             contentDescription = null,

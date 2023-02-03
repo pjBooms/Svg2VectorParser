@@ -1128,7 +1128,7 @@ object Svg2Vector {
         )
         svgTree.normalize()
         // TODO: this has to happen in the tree mode!!!
-        svgTree.root!!.buildVector(builder)
+        svgTree.root!!.buildVector(ImageVectorBuilder(builder))
         return builder.build()
     }
 

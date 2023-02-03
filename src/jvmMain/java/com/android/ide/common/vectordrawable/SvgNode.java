@@ -342,7 +342,7 @@ abstract class SvgNode {
         mSvgTree.logWarning(s, mDocumentElement);
     }
 
-    public abstract void buildVector(@NotNull ImageVector.Builder builder);
+    public abstract void buildVector(@NotNull ImageVectorBuilder builder);
 
     protected interface Visitor {
         /**
