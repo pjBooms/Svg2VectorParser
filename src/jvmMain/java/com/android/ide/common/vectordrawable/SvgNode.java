@@ -28,7 +28,7 @@ import static com.android.ide.common.vectordrawable.Svg2Vector.presentationMap;
 import androidx.compose.ui.graphics.vector.ImageVector;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
@@ -67,11 +67,11 @@ abstract class SvgNode {
     /** Stroke is applied before fill as a result of "paint-order:stroke fill" style. */
     protected boolean mStrokeBeforeFill;
     // If mLocalTransform is identity, it is the same as not having any transformation.
-    protected AffineTransform mLocalTransform = new AffineTransform();
+    protected Transform mLocalTransform = new Transform();
 
     // During the flatten() operation, we need to merge the transformation from top down.
     // This is the stacked transformation. And this will be used for the path data transform().
-    protected AffineTransform mStackedTransform = new AffineTransform();
+    protected Transform mStackedTransform = new Transform();
 
     /** While parsing the translate() rotate() ..., update the {@code mLocalTransform}. */
     SvgNode(@NonNull SvgTree svgTree, @NonNull Element element, @Nullable String name) {
@@ -103,7 +103,7 @@ abstract class SvgNode {
         // "translate" "30" "rotate" "4.5e1  5e1  50"
         nodeValue = nodeValue.replaceAll(",", " ");
         String[] matrices = nodeValue.split("[()]");
-        AffineTransform parsedTransform;
+        Transform parsedTransform;
         for (int i = 0; i < matrices.length - 1; i += 2) {
             parsedTransform = parseOneTransform(matrices[i].trim(), matrices[i + 1].trim());
             if (parsedTransform != null) {
@@ -113,19 +113,19 @@ abstract class SvgNode {
     }
 
     @Nullable
-    private static AffineTransform parseOneTransform(String type, String data) {
+    private static Transform parseOneTransform(String type, String data) {
         float[] numbers = getNumbers(data);
         if (numbers == null) {
             return null;
         }
         int numLength = numbers.length;
-        AffineTransform parsedTransform = new AffineTransform();
+        Transform parsedTransform = new Transform();
 
         if (MATRIX_ATTRIBUTE.equalsIgnoreCase(type)) {
             if (numLength != 6) {
                 return null;
             }
-            parsedTransform.setTransform(
+            parsedTransform.setFrom(
                     numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
         } else if (TRANSLATE_ATTRIBUTE.equalsIgnoreCase(type)) {
             if (numLength != 1 && numLength != 2) {
@@ -153,12 +153,12 @@ abstract class SvgNode {
             }
             // Note that Swing is pass the shear value directly to the matrix as m01 or m10,
             // while SVG is using tan(a) in the matrix and a is in radians.
-            parsedTransform.shear(Math.tan(Math.toRadians(numbers[0])), 0);
+            parsedTransform.skew(Math.tan(Math.toRadians(numbers[0])), 0);
         } else if (SKEWY_ATTRIBUTE.equalsIgnoreCase(type)) {
             if (numLength != 1) {
                 return null;
             }
-            parsedTransform.shear(0, Math.tan(Math.toRadians(numbers[0])));
+            parsedTransform.skew(0, Math.tan(Math.toRadians(numbers[0])));
         }
         return parsedTransform;
     }
@@ -218,7 +218,7 @@ abstract class SvgNode {
     public abstract boolean isGroupNode();
 
     /** Transforms the current Node with the transformation matrix. */
-    public abstract void transformIfNeeded(@NonNull AffineTransform finalTransform);
+    public abstract void transformIfNeeded(@NonNull Transform finalTransform);
 
     private void fillPresentationAttributesInternal(@NonNull String name, @NonNull String value) {
         switch (name) {
@@ -278,7 +278,7 @@ abstract class SvgNode {
         }
     }
 
-    public abstract void flatten(@NonNull AffineTransform transform);
+    public abstract void flatten(@NonNull Transform transform);
 
     /**
      * Checks validity of the node and logs any issues associated with it. Subclasses may override.
@@ -298,7 +298,7 @@ abstract class SvgNode {
 
     protected <T extends SvgNode> void copyFrom(@NonNull T from) {
         fillEmptyAttributes(from.mVdAttributesMap);
-        mLocalTransform = (AffineTransform) from.mLocalTransform.clone();
+        mLocalTransform = (Transform) from.mLocalTransform.clone();
     }
 
     /**

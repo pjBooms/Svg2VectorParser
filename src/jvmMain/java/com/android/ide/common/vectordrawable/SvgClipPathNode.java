@@ -22,7 +22,7 @@ import static com.android.ide.common.vectordrawable.Svg2Vector.SVG_MASK;
 import androidx.compose.ui.graphics.vector.ImageVector;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -81,23 +81,18 @@ class SvgClipPathNode extends SvgGroupNode {
     }
 
     @Override
-    public void flatten(@NonNull AffineTransform transform) {
+    public void flatten(@NonNull Transform transform) {
         for (SvgNode n : mChildren) {
-            mStackedTransform.setTransform(transform);
+            mStackedTransform.setFrom(transform);
             mStackedTransform.concatenate(mLocalTransform);
             n.flatten(mStackedTransform);
         }
 
-        mStackedTransform.setTransform(transform);
+        mStackedTransform.setFrom(transform);
         for (SvgNode n : mAffectedNodes) {
             n.flatten(mStackedTransform); // mLocalTransform does not apply to mAffectedNodes.
         }
         mStackedTransform.concatenate(mLocalTransform);
-
-        if (mVdAttributesMap.containsKey(Svg2Vector.SVG_STROKE_WIDTH)
-                && ((mStackedTransform.getType() & AffineTransform.TYPE_MASK_SCALE) != 0)) {
-            logWarning("Scaling of the stroke width is ignored");
-        }
     }
 
     @Override
@@ -123,7 +118,7 @@ class SvgClipPathNode extends SvgGroupNode {
     }
 
     @Override
-    public void transformIfNeeded(@NonNull AffineTransform rootTransform) {
+    public void transformIfNeeded(@NonNull Transform rootTransform) {
         for (SvgNode p : mChildren) {
             p.transformIfNeeded(rootTransform);
         }

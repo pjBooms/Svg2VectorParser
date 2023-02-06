@@ -26,10 +26,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.utils.Pair;
 import com.android.utils.PositionXmlParser;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +60,7 @@ class SvgTree {
 
     private float w = -1;
     private float h = -1;
-    private final AffineTransform mRootTransform = new AffineTransform();
+    private final Transform mRootTransform = new Transform();
     private float[] viewBox;
 
     private SvgGroupNode mRoot;
@@ -176,7 +174,7 @@ class SvgTree {
 
     /** From the root, top down, pass the transformation (TODO: attributes) down the children. */
     public void flatten() {
-        mRoot.flatten(new AffineTransform());
+        mRoot.flatten(new Transform());
     }
 
     /** Validates all nodes and logs any encountered issues. */
@@ -200,13 +198,13 @@ class SvgTree {
 
     public void normalize() {
         // mRootTransform is always setup, now just need to apply the viewbox info into.
-        mRootTransform.preConcatenate(new AffineTransform(1, 0, 0, 1, -viewBox[0], -viewBox[1]));
+        mRootTransform.preConcatenate(new Transform(1, 0, 0, 1, -viewBox[0], -viewBox[1]));
         transform(mRootTransform);
 
         logger.log(Level.FINE, "matrix=" + mRootTransform);
     }
 
-    private void transform(@NonNull AffineTransform rootTransform) {
+    private void transform(@NonNull Transform rootTransform) {
         mRoot.transformIfNeeded(rootTransform);
     }
 

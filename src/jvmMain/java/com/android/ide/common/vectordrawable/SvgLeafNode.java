@@ -23,6 +23,7 @@ import static com.android.ide.common.vectordrawable.Svg2Vector.SVG_STROKE_OPACIT
 import static com.android.ide.common.vectordrawable.Svg2Vector.SVG_STROKE_WIDTH;
 import static com.android.ide.common.vectordrawable.Svg2Vector.presentationMap;
 import static com.android.utils.XmlUtils.formatFloatValue;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
@@ -30,7 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.vectordrawable.PathParser.ParseMode;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Map;
@@ -210,7 +211,7 @@ class SvgLeafNode extends SvgNode {
     }
 
     @Override
-    public void transformIfNeeded(@NonNull AffineTransform rootTransform) {
+    public void transformIfNeeded(@NonNull Transform rootTransform) {
         if (mPathData == null || mPathData.isEmpty()) {
             // Nothing to draw and transform, early return.
             return;
@@ -225,12 +226,12 @@ class SvgLeafNode extends SvgNode {
     }
 
     @Override
-    public void flatten(@NonNull AffineTransform transform) {
-        mStackedTransform.setTransform(transform);
+    public void flatten(@NonNull Transform transform) {
+        mStackedTransform.setFrom(transform);
         mStackedTransform.concatenate(mLocalTransform);
 
         if (!"non-scaling-stroke".equals(mVdAttributesMap.get("vector-effect"))
-                && (mStackedTransform.getType() & AffineTransform.TYPE_MASK_SCALE) != 0) {
+                && mStackedTransform.getHasScale()) {
             String strokeWidth = mVdAttributesMap.get(SVG_STROKE_WIDTH);
             if (strokeWidth != null) {
                 try {
@@ -243,9 +244,6 @@ class SvgLeafNode extends SvgNode {
                     if (determinant != 0) {
                         width *= sqrt(abs(determinant));
                         mVdAttributesMap.put(SVG_STROKE_WIDTH, mSvgTree.formatCoordinate(width));
-                    }
-                    if ((mStackedTransform.getType() & AffineTransform.TYPE_GENERAL_SCALE) != 0) {
-                        logWarning("Scaling of the stroke width is approximate");
                     }
                 } catch (NumberFormatException ignore) {
                 }

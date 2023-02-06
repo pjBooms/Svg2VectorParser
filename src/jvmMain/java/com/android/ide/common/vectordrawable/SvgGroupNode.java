@@ -20,7 +20,7 @@ import static com.android.ide.common.vectordrawable.Svg2Vector.parseFloatOrDefau
 import androidx.compose.ui.graphics.vector.ImageVector;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ class SvgGroupNode extends SvgNode {
 
             float x = parseFloatOrDefault(mDocumentElement.getAttribute("x"), 0);
             float y = parseFloatOrDefault(mDocumentElement.getAttribute("y"), 0);
-            transformIfNeeded(new AffineTransform(1, 0, 0, 1, x, y));
+            transformIfNeeded(new Transform(1, 0, 0, 1, x, y));
         }
         return true;
     }
@@ -163,16 +163,16 @@ class SvgGroupNode extends SvgNode {
     }
 
     @Override
-    public void transformIfNeeded(@NonNull AffineTransform rootTransform) {
+    public void transformIfNeeded(@NonNull Transform rootTransform) {
         for (SvgNode p : mChildren) {
             p.transformIfNeeded(rootTransform);
         }
     }
 
     @Override
-    public void flatten(@NonNull AffineTransform transform) {
+    public void flatten(@NonNull Transform transform) {
         for (SvgNode node : mChildren) {
-            mStackedTransform.setTransform(transform);
+            mStackedTransform.setFrom(transform);
             mStackedTransform.concatenate(mLocalTransform);
             node.flatten(mStackedTransform);
         }

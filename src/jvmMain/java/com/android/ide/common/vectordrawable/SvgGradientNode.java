@@ -23,8 +23,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.vectordrawable.PathParser.ParseMode;
 import com.google.common.collect.ImmutableMap;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
+import com.android.utils.Transform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -133,13 +132,13 @@ class SvgGradientNode extends SvgNode {
     }
 
     @Override
-    public void transformIfNeeded(@NonNull AffineTransform rootTransform) {
+    public void transformIfNeeded(@NonNull Transform rootTransform) {
         // Transformation is done in the writeXml method.
     }
 
     @Override
-    public void flatten(@NonNull AffineTransform transform) {
-        mStackedTransform.setTransform(transform);
+    public void flatten(@NonNull Transform transform) {
+        mStackedTransform.setFrom(transform);
         mStackedTransform.concatenate(mLocalTransform);
     }
 
@@ -215,13 +214,9 @@ class SvgGradientNode extends SvgNode {
             String transformValue = mVdAttributesMap.get("gradientTransform");
             parseLocalTransform(transformValue);
             if (!isUserSpaceOnUse) {
-                AffineTransform tr = new AffineTransform(width, 0, 0, height, 0, 0);
+                Transform tr = new Transform(width, 0, 0, height, 0, 0);
                 mLocalTransform.preConcatenate(tr);
-                try {
-                    tr.invert();
-                } catch (NoninvertibleTransformException e) {
-                    throw new Error(e); // Not going to happen because width * height != 0;
-                }
+                tr = new Transform(1.0 / width, 0, 0, 1.0 / height, 0, 0);
                 mLocalTransform.concatenate(tr);
             }
         }
@@ -289,7 +284,7 @@ class SvgGradientNode extends SvgNode {
             }
             // transformedBounds will hold the new coordinates of the gradient.
             // This applies it to the linearGradient
-            mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 2);
+            mLocalTransform.map(gradientBounds, 0, transformedBounds, 0, 2);
         } else {
             gradientBounds = new double[2];
             transformedBounds = new double[2];
@@ -315,10 +310,10 @@ class SvgGradientNode extends SvgNode {
             transformedBounds[1] = cy;
 
             // Transform radius, center point here.
-            mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 1);
+            mLocalTransform.map(gradientBounds, 0, transformedBounds, 0, 1);
             Point2D radius = new Point2D.Double(r, 0);
             Point2D transformedRadius = new Point2D.Double(r, 0);
-            mLocalTransform.deltaTransform(radius, transformedRadius);
+            mLocalTransform.mapWithoutTranslate(radius, transformedRadius);
 
             mVdAttributesMap.put("cx", mSvgTree.formatCoordinate(transformedBounds[0]));
             mVdAttributesMap.put("cy", mSvgTree.formatCoordinate(transformedBounds[1]));
