@@ -15,7 +15,7 @@
  */
 package com.android.ide.common.vectordrawable;
 
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,10 +45,10 @@ class VdGroup extends VdElement{
     private float mTranslateY = 0;
 
     // Used at draw time, basically accumulative matrix from root to current group.
-    private final AffineTransform mTempStackedMatrix = new AffineTransform();
+    private final Transform mTempStackedMatrix = new Transform();
 
     // The current group's transformation.
-    private final AffineTransform mLocalMatrix = new AffineTransform();
+    private final Transform mLocalMatrix = new Transform();
 
     // Children can be either a {@link VdPath} or {@link VdGroup}
     private final ArrayList<VdElement> mChildren = new ArrayList<>();
@@ -66,31 +66,31 @@ class VdGroup extends VdElement{
     }
 
     // Src = trans * src, this is called preConcatenate() in Swing, but postConcatenate() in Android
-    private static void androidPostTransform(AffineTransform src, AffineTransform trans) {
+    private static void androidPostTransform(Transform src, Transform trans) {
         src.preConcatenate(trans);
     }
 
     private void updateLocalMatrix() {
         // The order we apply is the same as the
         // RenderNode.cpp::applyViewPropertyTransforms().
-        mLocalMatrix.setToIdentity();
+        mLocalMatrix.reset();
 
         // In Android framework, the transformation is applied in
         // VectorDrawable.java VGroup::updateLocalMatrix()
-        AffineTransform tempTrans = new AffineTransform();
-        tempTrans.setToIdentity();
+        Transform tempTrans = new Transform();
+        tempTrans.reset();
         tempTrans.translate(-mPivotX, -mPivotY);
         androidPostTransform(mLocalMatrix, tempTrans);
 
-        tempTrans.setToIdentity();
+        tempTrans.reset();
         tempTrans.scale(mScaleX, mScaleY);
         androidPostTransform(mLocalMatrix, tempTrans);
 
-        tempTrans.setToIdentity();
+        tempTrans.reset();
         tempTrans.rotate(mRotate * 3.1415926 / 180, 0, 0);
         androidPostTransform(mLocalMatrix, tempTrans);
 
-        tempTrans.setToIdentity();
+        tempTrans.reset();
         tempTrans.translate(mTranslateX + mPivotX, mTranslateY + mPivotY);
         androidPostTransform(mLocalMatrix, tempTrans);
     }

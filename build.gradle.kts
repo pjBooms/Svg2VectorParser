@@ -30,7 +30,13 @@ kotlin {
                 implementation("com.google.guava:guava:31.1-jre")
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                // on `org.junit.jupiter:junit-jupiter-engine:5.9.1` I have `No tests found`
+                // Idea creates this task: :cleanJvmTest :jvmTest --tests "com.android.utils.TransformTest"
+                implementation("junit:junit:4.13.2")
+            }
+        }
     }
 }
 

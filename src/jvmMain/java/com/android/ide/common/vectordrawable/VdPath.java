@@ -23,7 +23,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.vectordrawable.PathParser.ParseMode;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.ImmutableMap;
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -175,7 +175,7 @@ class VdPath extends VdElement {
         }
 
         public static void transform(
-                @NonNull AffineTransform totalTransform, @NonNull Node[] nodes) {
+                @NonNull Transform totalTransform, @NonNull Node[] nodes) {
             Point2D.Float currentPoint = new Point2D.Float();
             Point2D.Float currentSegmentStartPoint = new Point2D.Float();
             char previousType = INIT_TYPE;
@@ -186,7 +186,7 @@ class VdPath extends VdElement {
         }
 
         private void transform(
-                @NonNull AffineTransform totalTransform,
+                @NonNull Transform totalTransform,
                 @NonNull Point2D.Float currentPoint,
                 @NonNull Point2D.Float currentSegmentStartPoint,
                 char previousType) {
@@ -224,7 +224,7 @@ class VdPath extends VdElement {
                     currentX = mParams[paramsLen - 2];
                     currentY = mParams[paramsLen - 1];
 
-                    totalTransform.transform(mParams, 0, mParams, 0, paramsLen / 2);
+                    totalTransform.map(mParams, 0, mParams, 0, paramsLen / 2);
                     break;
 
                 case 'm':
@@ -243,7 +243,7 @@ class VdPath extends VdElement {
                         currentX = mParams[paramsLen - 2];
                         currentY = mParams[paramsLen - 1];
 
-                        totalTransform.transform(mParams, 0, mParams, 0, paramsLen / 2);
+                        totalTransform.map(mParams, 0, mParams, 0, paramsLen / 2);
                     } else {
                         int headLen = 2;
                         currentX += mParams[0];
@@ -254,7 +254,7 @@ class VdPath extends VdElement {
                         if (previousType == INIT_TYPE) {
                             // 'm' at the start of a path is handled similar to 'M'.
                             // The coordinates are transformed as absolute.
-                            totalTransform.transform(mParams, 0, mParams, 0, headLen / 2);
+                            totalTransform.map(mParams, 0, mParams, 0, headLen / 2);
                         } else if (!isTranslationOnly(totalTransform)) {
                             deltaTransform(totalTransform, mParams, 0, headLen);
                         }
@@ -291,7 +291,7 @@ class VdPath extends VdElement {
                         tempParams[i * 2 + 1] = currentY;
                         currentX = mParams[i];
                     }
-                    totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen /*points*/);
+                    totalTransform.map(tempParams, 0, tempParams, 0, paramsLen /*points*/);
                     mParams = tempParams;
                     break;
 
@@ -302,7 +302,7 @@ class VdPath extends VdElement {
                         tempParams[i * 2 + 1] = mParams[i];
                         currentY = mParams[i];
                     }
-                    totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen /*points*/);
+                    totalTransform.map(tempParams, 0, tempParams, 0, paramsLen /*points*/);
                     mParams = tempParams;
                     break;
 
@@ -356,7 +356,7 @@ class VdPath extends VdElement {
                         currentX = mParams[i + 5];
                         currentY = mParams[i + 6];
 
-                        totalTransform.transform(mParams, i + 5, mParams, i + 5, 1 /*1 point only*/);
+                        totalTransform.map(mParams, i + 5, mParams, i + 5, 1 /*1 point only*/);
                     }
                     break;
 
@@ -395,10 +395,8 @@ class VdPath extends VdElement {
             currentSegmentStartPoint.setLocation(currentSegmentStartX, currentSegmentStartY);
         }
 
-        private static boolean isTranslationOnly(@NonNull AffineTransform totalTransform) {
-            int type = totalTransform.getType();
-            return type == AffineTransform.TYPE_IDENTITY
-                    || type == AffineTransform.TYPE_TRANSLATION;
+        private static boolean isTranslationOnly(@NonNull Transform totalTransform) {
+            return totalTransform.isTranslationOnly();
         }
 
         /**
@@ -410,7 +408,7 @@ class VdPath extends VdElement {
          * @param paramsLen in number of floats, not points
          */
         private static void deltaTransform(
-                @NonNull AffineTransform totalTransform,
+                @NonNull Transform totalTransform,
                 @NonNull float[] coordinates,
                 int offset,
                 int paramsLen) {
@@ -419,7 +417,7 @@ class VdPath extends VdElement {
                 doubleArray[i] = coordinates[i + offset];
             }
 
-            totalTransform.deltaTransform(doubleArray, 0, doubleArray, 0, paramsLen / 2);
+            totalTransform.mapWithoutTranslate(doubleArray, 0, doubleArray, 0, paramsLen / 2);
 
             for (int i = 0; i < paramsLen; i++) {
                 coordinates[i + offset] = (float) doubleArray[i];

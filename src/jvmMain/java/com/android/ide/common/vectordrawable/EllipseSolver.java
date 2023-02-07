@@ -20,7 +20,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 
-import java.awt.geom.AffineTransform;
+import com.android.utils.Transform;
 import java.awt.geom.Point2D;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,7 +39,7 @@ class EllipseSolver {
      * Note that all the x y values are in absolute coordinates, such that we can apply
      * the transform directly.
      */
-    public EllipseSolver(AffineTransform totalTransform, float currentX, float currentY,
+    public EllipseSolver(Transform totalTransform, float currentX, float currentY,
             float rx, float ry, float xAxisRotation, float largeArcFlag, float sweepFlag,
             float destX, float destY) {
         if (rx == 0 || ry == 0) {
@@ -79,12 +79,12 @@ class EllipseSolver {
 
         // Transform 3 points and center point into destination.
         Point2D.Double mDstMiddlePoint =
-            (Point2D.Double) totalTransform.transform(middlePoint, null);
+            (Point2D.Double) totalTransform.map(middlePoint, null);
         Point2D.Double mDstMajorAxisPoint =
-            (Point2D.Double) totalTransform.transform(majorAxisPoint, null);
+            (Point2D.Double) totalTransform.map(majorAxisPoint, null);
         Point2D.Double mDstMinorAxisPoint =
-            (Point2D.Double) totalTransform.transform(minorAxisPoint, null);
-        Point2D dstCenter = totalTransform.transform(originalCenter, null);
+            (Point2D.Double) totalTransform.map(minorAxisPoint, null);
+        Point2D dstCenter = totalTransform.map(originalCenter, null);
         double dstCenterX = dstCenter.getX();
         double dstCenterY = dstCenter.getY();
 
